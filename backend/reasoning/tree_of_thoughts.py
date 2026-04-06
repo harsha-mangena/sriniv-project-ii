@@ -11,7 +11,7 @@ import logging
 import random
 from typing import Any, Optional
 
-from core.llm import llm
+from core.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +173,7 @@ Return JSON:
   ]
 }}"""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
     categories = result.get("categories", [])
 
     node_counter = 0
@@ -266,7 +266,7 @@ Return JSON:
   ]
 }}"""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
     scores_list = result.get("scores", [])
     score_map = {s["id"]: s.get("score", 5) for s in scores_list}
 
@@ -344,4 +344,4 @@ Rewrite the question to:
 
 Return ONLY the personalized question text."""
 
-    return (await llm.generate(prompt)).strip()
+    return (await get_llm().generate(prompt)).strip()

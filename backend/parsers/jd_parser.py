@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from core.llm import llm
+from core.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ Extract and return as JSON:
 
 Be thorough. Extract every technical requirement and responsibility."""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
     if "required_skills" not in result:
         result = {
             "title": "",

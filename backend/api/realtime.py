@@ -6,7 +6,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from core.llm import llm
+from core.llm import get_llm
 from db.vector_store import search_context
 
 logger = logging.getLogger(__name__)
@@ -124,4 +124,4 @@ Generate a brief, structured response hint (3-5 bullet points) that the candidat
 Be concise — this appears as an overlay during a live meeting.
 Focus on key points, not full paragraphs."""
 
-    return (await llm.generate(prompt, max_tokens=512)).strip()
+    return (await get_llm().generate(prompt, max_tokens=512)).strip()

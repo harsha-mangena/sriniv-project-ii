@@ -68,7 +68,7 @@ export default function RealTimeAssist() {
         )}
 
         <p className="text-xs text-gray-600">
-          Requires Ollama running locally. Audio capture uses ScreenCaptureKit on macOS.
+          Requires an LLM provider (Ollama or Gemini). Configure in Settings.
         </p>
       </div>
 

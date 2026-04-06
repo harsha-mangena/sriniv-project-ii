@@ -11,7 +11,7 @@ targeted follow-up questions.
 import logging
 from typing import Any
 
-from core.llm import llm
+from core.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ Return a JSON object with this structure:
 
 Aim for 4-8 atoms per question. Independent atoms (no dependencies) should come first."""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
 
     if "atoms" not in result:
         # Fallback: create a basic decomposition
@@ -177,7 +177,7 @@ Return JSON:
   "strength": "<what was done well, if anything>"
 }}"""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
     if "score" not in result:
         result = {"score": 0.5, "feedback": "Could not evaluate this atom.", "missing_points": [], "strength": ""}
     result["score"] = max(0.0, min(1.0, float(result.get("score", 0.5))))
@@ -233,7 +233,7 @@ Generate a concise, natural follow-up question that:
 
 Return ONLY the follow-up question text, nothing else."""
 
-    return (await llm.generate(prompt)).strip()
+    return (await get_llm().generate(prompt)).strip()
 
 
 async def generate_atom_feedback_summary(
@@ -266,4 +266,4 @@ Detailed atom scores:
 Write 2-3 sentences of constructive feedback. Be specific about what was good and what to improve.
 Start with a strength, then address gaps."""
 
-    return (await llm.generate(prompt)).strip()
+    return (await get_llm().generate(prompt)).strip()

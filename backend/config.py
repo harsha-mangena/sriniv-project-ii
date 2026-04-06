@@ -13,10 +13,17 @@ UPLOAD_DIR = BASE_DIR / "uploads"
 DB_DIR.mkdir(exist_ok=True)
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+# LLM Provider settings
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")  # "ollama" or "gemini"
+
 # Ollama settings
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:8b")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+
+# Gemini settings
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
 # Database
 SQLITE_DB_PATH = str(DB_DIR / "interviewpilot.db")

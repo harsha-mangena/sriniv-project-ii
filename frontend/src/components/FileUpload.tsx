@@ -4,7 +4,7 @@ import clsx from 'clsx'
 
 interface FileUploadProps {
   label: string
-  onTextSubmit: (text: string) => void
+  onTextSubmit: (text: string) => void | Promise<void>
   loading?: boolean
   success?: boolean
 }
