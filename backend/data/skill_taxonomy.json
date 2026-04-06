@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "categories": [
+    {
+      "name": "Data Structures & Algorithms",
+      "atoms": [
+        {"id": "dsa_arrays", "label": "Arrays & Strings", "difficulty": 1, "prerequisites": [], "evaluation_criteria": ["Manipulation operations", "Two-pointer technique", "Sliding window"]},
+        {"id": "dsa_linked_lists", "label": "Linked Lists", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Traversal", "Reversal", "Cycle detection"]},
+        {"id": "dsa_stacks_queues", "label": "Stacks & Queues", "difficulty": 2, "prerequisites": ["dsa_arrays"], "evaluation_criteria": ["LIFO/FIFO operations", "Monotonic stack", "Queue implementations"]},
+        {"id": "dsa_trees_basics", "label": "Binary Trees", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Traversals (in/pre/post)", "Height/depth", "Balanced check"]},
+        {"id": "dsa_bst", "label": "Binary Search Trees", "difficulty": 3, "prerequisites": ["dsa_trees_basics"], "evaluation_criteria": ["Insert/delete/search", "Validation", "Balancing concepts"]},
+        {"id": "dsa_heaps", "label": "Heaps & Priority Queues", "difficulty": 3, "prerequisites": ["dsa_trees_basics"], "evaluation_criteria": ["Min/max heap", "Heapify", "Top-K problems"]},
+        {"id": "dsa_hash_maps", "label": "Hash Maps & Sets", "difficulty": 2, "prerequisites": ["dsa_arrays"], "evaluation_criteria": ["Collision handling", "Load factor", "Custom hash functions"]},
+        {"id": "dsa_graphs_basics", "label": "Graph Fundamentals", "difficulty": 3, "prerequisites": ["dsa_trees_basics"], "evaluation_criteria": ["Representations", "BFS", "DFS"]},
+        {"id": "dsa_graphs_advanced", "label": "Advanced Graphs", "difficulty": 4, "prerequisites": ["dsa_graphs_basics"], "evaluation_criteria": ["Dijkstra", "Topological sort", "Union-Find"]},
+        {"id": "dsa_dp", "label": "Dynamic Programming", "difficulty": 4, "prerequisites": ["dsa_arrays"], "evaluation_criteria": ["Memoization vs tabulation", "State definition", "Optimization"]},
+        {"id": "dsa_recursion", "label": "Recursion & Backtracking", "difficulty": 3, "prerequisites": ["dsa_stacks_queues"], "evaluation_criteria": ["Base case", "Recursive relation", "Backtracking pruning"]},
+        {"id": "dsa_sorting", "label": "Sorting Algorithms", "difficulty": 2, "prerequisites": ["dsa_arrays"], "evaluation_criteria": ["Comparison sorts", "Non-comparison sorts", "Stability"]},
+        {"id": "dsa_binary_search", "label": "Binary Search", "difficulty": 2, "prerequisites": ["dsa_arrays", "dsa_sorting"], "evaluation_criteria": ["Standard binary search", "Search on answer", "Rotated arrays"]},
+        {"id": "dsa_complexity", "label": "Time & Space Complexity", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Big-O analysis", "Amortized analysis", "Space optimization"]}
+      ]
+    },
+    {
+      "name": "System Design",
+      "atoms": [
+        {"id": "sd_requirements", "label": "Requirements Gathering", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Functional vs non-functional", "Scale estimation", "Constraint identification"]},
+        {"id": "sd_hld", "label": "High-Level Design", "difficulty": 3, "prerequisites": ["sd_requirements"], "evaluation_criteria": ["Component identification", "API design", "Data flow"]},
+        {"id": "sd_database", "label": "Database Design", "difficulty": 3, "prerequisites": ["sd_hld"], "evaluation_criteria": ["SQL vs NoSQL", "Schema design", "Indexing strategy"]},
+        {"id": "sd_caching", "label": "Caching Strategies", "difficulty": 3, "prerequisites": ["sd_hld"], "evaluation_criteria": ["Cache policies", "CDN", "Cache invalidation"]},
+        {"id": "sd_load_balancing", "label": "Load Balancing", "difficulty": 3, "prerequisites": ["sd_hld"], "evaluation_criteria": ["Algorithms", "L4 vs L7", "Health checks"]},
+        {"id": "sd_message_queues", "label": "Message Queues", "difficulty": 4, "prerequisites": ["sd_hld"], "evaluation_criteria": ["Pub/sub", "Exactly-once", "Backpressure"]},
+        {"id": "sd_consistency", "label": "Consistency & CAP", "difficulty": 4, "prerequisites": ["sd_database"], "evaluation_criteria": ["CAP theorem", "ACID vs BASE", "Consensus protocols"]},
+        {"id": "sd_scalability", "label": "Scalability Patterns", "difficulty": 4, "prerequisites": ["sd_load_balancing", "sd_caching"], "evaluation_criteria": ["Horizontal scaling", "Sharding", "Replication"]},
+        {"id": "sd_microservices", "label": "Microservices Architecture", "difficulty": 4, "prerequisites": ["sd_hld", "sd_message_queues"], "evaluation_criteria": ["Service boundaries", "Inter-service communication", "Service discovery"]},
+        {"id": "sd_monitoring", "label": "Monitoring & Observability", "difficulty": 3, "prerequisites": ["sd_hld"], "evaluation_criteria": ["Metrics", "Logging", "Tracing", "Alerting"]}
+      ]
+    },
+    {
+      "name": "Behavioral",
+      "atoms": [
+        {"id": "beh_star_method", "label": "STAR Method Structure", "difficulty": 1, "prerequisites": [], "evaluation_criteria": ["Situation clarity", "Task definition", "Action detail", "Result quantification"]},
+        {"id": "beh_leadership", "label": "Leadership & Initiative", "difficulty": 3, "prerequisites": ["beh_star_method"], "evaluation_criteria": ["Taking ownership", "Influencing without authority", "Driving outcomes"]},
+        {"id": "beh_conflict", "label": "Conflict Resolution", "difficulty": 3, "prerequisites": ["beh_star_method"], "evaluation_criteria": ["Identifying root cause", "Active listening", "Finding compromise"]},
+        {"id": "beh_teamwork", "label": "Teamwork & Collaboration", "difficulty": 2, "prerequisites": ["beh_star_method"], "evaluation_criteria": ["Cross-team collaboration", "Giving/receiving feedback", "Supporting others"]},
+        {"id": "beh_failure", "label": "Handling Failure", "difficulty": 3, "prerequisites": ["beh_star_method"], "evaluation_criteria": ["Accountability", "Learning from mistakes", "Recovery strategy"]},
+        {"id": "beh_ambiguity", "label": "Dealing with Ambiguity", "difficulty": 4, "prerequisites": ["beh_leadership"], "evaluation_criteria": ["Decision-making under uncertainty", "Prioritization", "Iterative approach"]},
+        {"id": "beh_communication", "label": "Communication Skills", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Clarity", "Audience awareness", "Technical-to-non-technical translation"]},
+        {"id": "beh_time_mgmt", "label": "Time Management & Prioritization", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Priority frameworks", "Trade-off decisions", "Deadline management"]}
+      ]
+    },
+    {
+      "name": "SQL & Data",
+      "atoms": [
+        {"id": "sql_basics", "label": "SQL Fundamentals", "difficulty": 1, "prerequisites": [], "evaluation_criteria": ["SELECT/WHERE/ORDER", "GROUP BY/HAVING", "Basic joins"]},
+        {"id": "sql_joins", "label": "Advanced Joins", "difficulty": 2, "prerequisites": ["sql_basics"], "evaluation_criteria": ["LEFT/RIGHT/FULL", "Self-joins", "Cross joins"]},
+        {"id": "sql_subqueries", "label": "Subqueries & CTEs", "difficulty": 3, "prerequisites": ["sql_joins"], "evaluation_criteria": ["Correlated subqueries", "WITH clause", "Recursive CTEs"]},
+        {"id": "sql_window", "label": "Window Functions", "difficulty": 3, "prerequisites": ["sql_basics"], "evaluation_criteria": ["ROW_NUMBER/RANK", "LAG/LEAD", "Partitioning"]},
+        {"id": "sql_optimization", "label": "Query Optimization", "difficulty": 4, "prerequisites": ["sql_subqueries"], "evaluation_criteria": ["EXPLAIN plans", "Index usage", "Query rewriting"]},
+        {"id": "data_modeling", "label": "Data Modeling", "difficulty": 3, "prerequisites": ["sql_basics"], "evaluation_criteria": ["Normalization", "Star schema", "Entity relationships"]},
+        {"id": "data_pipeline", "label": "Data Pipeline Design", "difficulty": 4, "prerequisites": ["data_modeling", "sql_optimization"], "evaluation_criteria": ["ETL/ELT", "Batch vs streaming", "Data quality"]}
+      ]
+    },
+    {
+      "name": "Backend Engineering",
+      "atoms": [
+        {"id": "be_rest_api", "label": "REST API Design", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["HTTP methods", "Status codes", "Resource modeling", "Versioning"]},
+        {"id": "be_auth", "label": "Authentication & Authorization", "difficulty": 3, "prerequisites": ["be_rest_api"], "evaluation_criteria": ["OAuth2/JWT", "RBAC", "Session management"]},
+        {"id": "be_testing", "label": "Testing Strategies", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Unit tests", "Integration tests", "Mocking", "TDD"]},
+        {"id": "be_concurrency", "label": "Concurrency & Async", "difficulty": 4, "prerequisites": [], "evaluation_criteria": ["Threads vs processes", "Async/await", "Race conditions", "Locks"]},
+        {"id": "be_design_patterns", "label": "Design Patterns", "difficulty": 3, "prerequisites": [], "evaluation_criteria": ["Singleton", "Factory", "Observer", "Strategy"]},
+        {"id": "be_error_handling", "label": "Error Handling & Resilience", "difficulty": 3, "prerequisites": ["be_rest_api"], "evaluation_criteria": ["Error codes", "Retry policies", "Circuit breakers"]},
+        {"id": "be_oop", "label": "OOP Principles", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["SOLID principles", "Encapsulation", "Polymorphism", "Inheritance vs composition"]}
+      ]
+    },
+    {
+      "name": "DevOps & Cloud",
+      "atoms": [
+        {"id": "devops_ci_cd", "label": "CI/CD Pipelines", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Build automation", "Deployment strategies", "Testing in pipeline"]},
+        {"id": "devops_containers", "label": "Containers & Docker", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Dockerfile", "Images vs containers", "Multi-stage builds"]},
+        {"id": "devops_kubernetes", "label": "Kubernetes", "difficulty": 4, "prerequisites": ["devops_containers"], "evaluation_criteria": ["Pods/Services", "Deployments", "Scaling"]},
+        {"id": "devops_cloud", "label": "Cloud Services", "difficulty": 3, "prerequisites": [], "evaluation_criteria": ["Compute/storage/networking", "Managed services", "Cost optimization"]},
+        {"id": "devops_monitoring", "label": "Monitoring & Logging", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Metrics collection", "Log aggregation", "Alerting"]}
+      ]
+    },
+    {
+      "name": "Machine Learning",
+      "atoms": [
+        {"id": "ml_fundamentals", "label": "ML Fundamentals", "difficulty": 2, "prerequisites": [], "evaluation_criteria": ["Supervised vs unsupervised", "Bias-variance tradeoff", "Overfitting"]},
+        {"id": "ml_models", "label": "Common ML Models", "difficulty": 3, "prerequisites": ["ml_fundamentals"], "evaluation_criteria": ["Linear/logistic regression", "Decision trees", "Neural networks"]},
+        {"id": "ml_evaluation", "label": "Model Evaluation", "difficulty": 3, "prerequisites": ["ml_fundamentals"], "evaluation_criteria": ["Metrics (precision/recall/F1)", "Cross-validation", "A/B testing"]},
+        {"id": "ml_nlp", "label": "NLP & LLMs", "difficulty": 4, "prerequisites": ["ml_models"], "evaluation_criteria": ["Transformers", "Fine-tuning", "Prompt engineering", "RAG"]},
+        {"id": "ml_deployment", "label": "ML Deployment", "difficulty": 4, "prerequisites": ["ml_models"], "evaluation_criteria": ["Model serving", "Feature stores", "Monitoring drift"]}
+      ]
+    }
+  ]
+}

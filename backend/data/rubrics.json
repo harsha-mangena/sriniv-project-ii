@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "rubrics": {
+    "behavioral": {
+      "description": "Evaluation rubric for behavioral (STAR) questions",
+      "dimensions": [
+        {"name": "Situation Clarity", "weight": 0.15, "criteria": {"excellent": "Vivid, specific context with key details", "good": "Clear context with some specifics", "needs_work": "Vague or generic context", "poor": "No clear situation described"}},
+        {"name": "Task Definition", "weight": 0.15, "criteria": {"excellent": "Clear personal role and responsibility defined", "good": "Role is mentioned but not detailed", "needs_work": "Unclear what the candidate's role was", "poor": "No task described"}},
+        {"name": "Action Detail", "weight": 0.40, "criteria": {"excellent": "Multiple specific actions with rationale for each decision", "good": "Actions described with some rationale", "needs_work": "Actions mentioned but vague", "poor": "No clear actions taken"}},
+        {"name": "Result Quantification", "weight": 0.30, "criteria": {"excellent": "Quantified impact with metrics and learnings", "good": "Outcome described with some metrics", "needs_work": "Vague outcome without metrics", "poor": "No result mentioned"}}
+      ]
+    },
+    "technical_coding": {
+      "description": "Evaluation rubric for coding/DSA questions",
+      "dimensions": [
+        {"name": "Problem Understanding", "weight": 0.15, "criteria": {"excellent": "Clarifies requirements, identifies edge cases, states assumptions", "good": "Understands problem, mentions some edge cases", "needs_work": "Basic understanding, misses edge cases", "poor": "Misunderstands the problem"}},
+        {"name": "Approach & Algorithm", "weight": 0.35, "criteria": {"excellent": "Optimal algorithm with clear reasoning for choice", "good": "Correct algorithm, could be more optimal", "needs_work": "Brute force or partially correct approach", "poor": "No viable approach"}},
+        {"name": "Code Quality", "weight": 0.25, "criteria": {"excellent": "Clean, readable code with good variable names and structure", "good": "Working code with minor style issues", "needs_work": "Code works but is messy or hard to follow", "poor": "Non-functional or pseudocode only"}},
+        {"name": "Complexity Analysis", "weight": 0.25, "criteria": {"excellent": "Correct time and space complexity with optimization discussion", "good": "Correct complexity stated", "needs_work": "Partially correct or missing one", "poor": "No complexity analysis"}}
+      ]
+    },
+    "system_design": {
+      "description": "Evaluation rubric for system design questions",
+      "dimensions": [
+        {"name": "Requirements Gathering", "weight": 0.15, "criteria": {"excellent": "Clarifies functional/non-functional requirements, estimates scale", "good": "Asks some clarifying questions", "needs_work": "Jumps to design without requirements", "poor": "No requirements discussion"}},
+        {"name": "High-Level Architecture", "weight": 0.25, "criteria": {"excellent": "Clear component diagram with data flow and API design", "good": "Main components identified with basic interactions", "needs_work": "Incomplete or overly simple architecture", "poor": "No architecture proposed"}},
+        {"name": "Deep Dive & Trade-offs", "weight": 0.35, "criteria": {"excellent": "Explores multiple options with reasoned trade-offs for each decision", "good": "Makes reasonable choices with some justification", "needs_work": "Makes choices without discussing alternatives", "poor": "No depth beyond surface level"}},
+        {"name": "Scalability & Reliability", "weight": 0.25, "criteria": {"excellent": "Addresses scaling, failure modes, monitoring, and bottlenecks", "good": "Mentions scaling and basic failure handling", "needs_work": "Brief mention of scale without detail", "poor": "No consideration of scale or reliability"}}
+      ]
+    },
+    "sql_data": {
+      "description": "Evaluation rubric for SQL and data questions",
+      "dimensions": [
+        {"name": "Query Correctness", "weight": 0.35, "criteria": {"excellent": "Correct query handling all edge cases", "good": "Mostly correct with minor issues", "needs_work": "Partially correct with logical errors", "poor": "Fundamentally incorrect"}},
+        {"name": "Optimization Awareness", "weight": 0.25, "criteria": {"excellent": "Discusses indexing, query plans, and performance", "good": "Mentions optimization considerations", "needs_work": "Writes query without performance thought", "poor": "No awareness of performance"}},
+        {"name": "Data Modeling Understanding", "weight": 0.25, "criteria": {"excellent": "Understands schema design, normalization, and relationships", "good": "Basic understanding of data model", "needs_work": "Limited data modeling knowledge", "poor": "No understanding shown"}},
+        {"name": "Communication", "weight": 0.15, "criteria": {"excellent": "Explains approach clearly, discusses alternatives", "good": "Explains what query does", "needs_work": "Minimal explanation", "poor": "No explanation"}}
+      ]
+    },
+    "ml_ai": {
+      "description": "Evaluation rubric for ML/AI questions",
+      "dimensions": [
+        {"name": "Conceptual Understanding", "weight": 0.30, "criteria": {"excellent": "Deep understanding with mathematical intuition", "good": "Correct conceptual explanation", "needs_work": "Surface-level understanding", "poor": "Misconceptions present"}},
+        {"name": "Practical Application", "weight": 0.30, "criteria": {"excellent": "Real-world examples with implementation details", "good": "Can describe practical usage", "needs_work": "Theory only, no practical insight", "poor": "Cannot apply concepts"}},
+        {"name": "Trade-offs & Limitations", "weight": 0.25, "criteria": {"excellent": "Discusses multiple approaches with reasoned trade-offs", "good": "Mentions some limitations", "needs_work": "Overly optimistic about one approach", "poor": "No awareness of limitations"}},
+        {"name": "Production Readiness", "weight": 0.15, "criteria": {"excellent": "Discusses deployment, monitoring, and maintenance", "good": "Mentions deployment considerations", "needs_work": "No production discussion", "poor": "No awareness of production concerns"}}
+      ]
+    }
+  }
+}

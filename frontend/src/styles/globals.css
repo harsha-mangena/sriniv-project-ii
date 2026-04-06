@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-navy-900 text-gray-100 antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-navy-800 border border-navy-700 rounded-xl p-6;
+  }
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-dark text-white font-medium px-6 py-2.5 rounded-lg transition-colors duration-200;
+  }
+  .btn-secondary {
+    @apply bg-navy-700 hover:bg-navy-600 text-gray-200 font-medium px-6 py-2.5 rounded-lg transition-colors duration-200;
+  }
+  .input {
+    @apply bg-navy-900 border border-navy-600 rounded-lg px-4 py-2.5 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-green { @apply bg-emerald-500/20 text-emerald-400; }
+  .badge-yellow { @apply bg-amber-500/20 text-amber-400; }
+  .badge-red { @apply bg-red-500/20 text-red-400; }
+  .badge-blue { @apply bg-blue-500/20 text-blue-400; }
+  .badge-purple { @apply bg-purple-500/20 text-purple-400; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* Score gauge animation */
+@keyframes score-fill {
+  from { stroke-dashoffset: 283; }
+}
+.score-ring { animation: score-fill 1s ease-out forwards; }
