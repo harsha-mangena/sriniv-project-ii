@@ -4,7 +4,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from core.llm import llm
+from core.llm import get_llm
 from db.database import get_document
 from models.schemas import PrepGenerateRequest, PrepQuestionItem, PrepResponse
 
@@ -66,7 +66,7 @@ Return JSON:
   ]
 }}"""
 
-    result = await llm.generate_json(prompt, max_tokens=4096)
+    result = await get_llm().generate_json(prompt, max_tokens=4096)
     questions_raw = result.get("questions", [])
 
     questions = []

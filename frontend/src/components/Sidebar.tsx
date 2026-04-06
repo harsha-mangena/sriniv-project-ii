@@ -42,8 +42,8 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="p-4 border-t border-navy-700">
-        <p className="text-xs text-gray-500">100% Local AI</p>
-        <p className="text-xs text-gray-500">Powered by Ollama</p>
+        <p className="text-xs text-gray-500">AI Interview Coach</p>
+        <p className="text-xs text-gray-500">Ollama / Gemini</p>
       </div>
     </aside>
   )

@@ -210,11 +210,18 @@ async def end_interview(session_id: str):
     stats = engine.get_session_stats()
     ended_at = datetime.utcnow()
 
+    # Calculate overall score from skill profile
+    skill_profile = stats.get("skill_profile", {})
+    if isinstance(skill_profile, dict) and skill_profile:
+        overall_score = sum(skill_profile.values()) / len(skill_profile)
+    else:
+        overall_score = 0.0
+
     # Update session in DB
     await update_session(
         session_id,
         status="completed",
-        overall_score=stats.get("skill_profile", {}).get("avg_score", 0),
+        overall_score=overall_score,
         ended_at=ended_at.isoformat(),
     )
 
@@ -242,7 +249,7 @@ async def end_interview(session_id: str):
     return SessionEndResponse(
         session_id=session_id,
         total_questions=stats.get("questions_asked", 0),
-        overall_score=stats.get("skill_profile", {}).get("avg_score", 0) if stats.get("skill_profile") else 0,
+        overall_score=round(overall_score, 3),
         category_scores=category_scores,
         weak_areas=stats.get("weak_areas", []),
         strong_areas=stats.get("strong_areas", []),

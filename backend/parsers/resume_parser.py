@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from core.llm import llm
+from core.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ Extract and return as JSON:
 
 Be thorough. Extract every skill, project, and achievement mentioned."""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
     if "skills" not in result:
         result = {
             "name": "",

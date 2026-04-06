@@ -3,6 +3,7 @@
 import logging
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from models.schemas import AtomBreakdownResponse, EvaluateAnswerRequest
 from reasoning.atom_of_thoughts import decompose_to_dag, evaluate_atoms, generate_atom_feedback_summary
@@ -34,12 +35,17 @@ async def evaluate_single_answer(request: EvaluateAnswerRequest):
     }
 
 
+class DecomposeRequest(BaseModel):
+    question: str
+    context: str = ""
+
+
 @router.post("/decompose", response_model=AtomBreakdownResponse)
-async def decompose_question(question: str, context: str = ""):
+async def decompose_question(request: DecomposeRequest):
     """Get atom breakdown for a question without evaluating an answer."""
-    dag = await decompose_to_dag(question, context)
+    dag = await decompose_to_dag(request.question, request.context)
     return AtomBreakdownResponse(
-        question=question,
+        question=request.question,
         total_atoms=dag.get("total_atoms", 0),
         atoms=dag.get("atoms", []),
     )

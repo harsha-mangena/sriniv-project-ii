@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from core.llm import llm
+from core.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ Perform a detailed analysis and return JSON:
   "interview_risk_areas": ["<topics likely to be challenging in interview>"]
 }}"""
 
-    result = await llm.generate_json(prompt)
+    result = await get_llm().generate_json(prompt)
     if "matched_skills" not in result:
         result = {
             "matched_skills": [],

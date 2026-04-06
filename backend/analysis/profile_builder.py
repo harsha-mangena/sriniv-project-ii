@@ -28,7 +28,7 @@ def build_learning_profile(session_history: list[dict[str, Any]]) -> dict[str, A
         }
 
     total_sessions = len(session_history)
-    total_questions = sum(s.get("questions_count", 0) for s in session_history)
+    total_questions = sum(s.get("question_count", s.get("questions_count", 0)) for s in session_history)
     scores = [s.get("overall_score", 0) for s in session_history]
     avg_score = sum(scores) / max(len(scores), 1)
 
