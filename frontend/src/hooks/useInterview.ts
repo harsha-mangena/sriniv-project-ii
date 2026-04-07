@@ -16,6 +16,10 @@ export function useInterview() {
         store.addMessage({ role: 'ai', text: q.question_text })
       }
       return result
+    } catch (err) {
+      // Fix 2.17: Clear loading state on error and re-throw for UI handling
+      store.setLoading(false)
+      throw err
     } finally {
       store.setLoading(false)
     }
@@ -44,6 +48,10 @@ export function useInterview() {
         store.addMessage({ role: 'ai', text: result.next_action.question })
       }
       return result
+    } catch (err) {
+      // Fix 2.17: Clear "Evaluating..." state on error and show user-facing message
+      store.setLoading(false)
+      throw err
     } finally {
       store.setLoading(false)
     }
@@ -57,6 +65,10 @@ export function useInterview() {
       store.setQuestion(result.question_text, result.category, result.difficulty)
       store.addMessage({ role: 'ai', text: result.question_text })
       return result
+    } catch (err) {
+      // Fix 2.17: Clear loading state on error
+      store.setLoading(false)
+      throw err
     } finally {
       store.setLoading(false)
     }
@@ -68,6 +80,9 @@ export function useInterview() {
       const result = await endInterview(store.sessionId)
       store.setActive(false)
       return result
+    } catch (err) {
+      store.setLoading(false)
+      throw err
     } finally {
       store.setLoading(false)
     }

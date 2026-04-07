@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Mic, MicOff, StopCircle, ArrowRight } from 'lucide-react'
+import { Send, Mic, MicOff, StopCircle, ArrowRight, AlertCircle } from 'lucide-react'
 import ChatBubble from '../components/ChatBubble'
 import { useInterview } from '../hooks/useInterview'
+import { useAudio } from '../hooks/useAudio'
 import { useProfileStore } from '../stores/profileStore'
-import clsx from 'clsx'
 
 export default function MockInterview() {
   const profile = useProfileStore()
   const interview = useInterview()
+  const audio = useAudio()
   const [input, setInput] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -17,27 +19,61 @@ export default function MockInterview() {
 
   const handleStart = async () => {
     if (!profile.resumeId || !profile.jdId) return
-    await interview.start(profile.resumeId, profile.jdId)
+    setError(null)
+    try {
+      await interview.start(profile.resumeId, profile.jdId)
+    } catch (err: any) {
+      setError(err?.message || 'Failed to start interview. Please try again.')
+    }
   }
 
   const handleSend = async () => {
     if (!input.trim() || interview.isLoading) return
     const text = input.trim()
     setInput('')
-    await interview.answer(text)
+    setError(null)
+    try {
+      await interview.answer(text)
+    } catch (err: any) {
+      // Fix 2.17: Handle error responses, clear "Evaluating..." state
+      setError(err?.message || 'Failed to evaluate answer. Please try again.')
+    }
   }
 
   const handleNext = async () => {
-    await interview.next()
+    setError(null)
+    try {
+      await interview.next()
+    } catch (err: any) {
+      setError(err?.message || 'Failed to get next question.')
+    }
   }
 
   const handleEnd = async () => {
-    const result = await interview.end()
-    if (result) {
-      interview.addMessage({
-        role: 'ai',
-        text: `Interview complete! Final score: ${((result as Record<string, number>).overall_score * 100).toFixed(0)}%`,
-      })
+    setError(null)
+    try {
+      const result = await interview.end()
+      if (result) {
+        interview.addMessage({
+          role: 'ai',
+          text: `Interview complete! Final score: ${((result as Record<string, number>).overall_score * 100).toFixed(0)}%`,
+        })
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to end interview.')
+    }
+  }
+
+  // Fix 2.1/2.3: Handle mic toggle with speech recognition
+  const handleMicToggle = async () => {
+    if (audio.isRecording) {
+      const result = await audio.stopRecording()
+      if (result.transcript) {
+        setInput(prev => prev ? `${prev} ${result.transcript}` : result.transcript)
+      }
+    } else {
+      audio.clearError()
+      await audio.startRecording()
     }
   }
 
@@ -87,6 +123,20 @@ export default function MockInterview() {
         </div>
       </div>
 
+      {/* Fix 2.3/2.17: Display user-facing error messages */}
+      {(error || audio.speechError) && (
+        <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-2 rounded-lg mb-3">
+          <AlertCircle size={16} className="shrink-0" />
+          <span>{error || audio.speechError}</span>
+          <button
+            className="ml-auto text-red-400 hover:text-red-300"
+            onClick={() => { setError(null); audio.clearError() }}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto space-y-2 mb-4 pr-2">
         {interview.messages.map((msg, i) => (
           <ChatBubble key={i} {...msg} />
@@ -116,8 +166,34 @@ export default function MockInterview() {
           <button className="btn-primary h-full" onClick={handleSend} disabled={!input.trim() || interview.isLoading}>
             <Send size={16} />
           </button>
+          {/* Fix 2.1/2.4: Mic button disabled/hidden when API unavailable */}
+          <button
+            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+              audio.isRecording
+                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                : audio.isSpeechSupported
+                  ? 'bg-navy-700 text-gray-300 hover:bg-navy-600'
+                  : 'bg-navy-800 text-gray-600 cursor-not-allowed'
+            }`}
+            onClick={handleMicToggle}
+            disabled={!audio.isSpeechSupported || interview.isLoading}
+            title={
+              !audio.isSpeechSupported
+                ? 'Voice input not supported in this browser. Please type your answer or try Chrome/Edge.'
+                : audio.isRecording ? 'Stop recording' : 'Start voice input'
+            }
+          >
+            {audio.isRecording ? <MicOff size={16} /> : <Mic size={16} />}
+          </button>
         </div>
       </div>
+
+      {/* Fix 2.2: Show unsupported message below mic */}
+      {!audio.isSpeechSupported && (
+        <p className="text-xs text-gray-600 mt-1 text-right">
+          Voice input not supported in this browser. Please type your answer or try Chrome/Edge.
+        </p>
+      )}
     </div>
   )
 }

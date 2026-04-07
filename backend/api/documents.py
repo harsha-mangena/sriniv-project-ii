@@ -1,12 +1,13 @@
 """Document upload and parsing API endpoints."""
 
+import hashlib
 import logging
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from config import UPLOAD_DIR
-from db.database import get_document, save_document
+from db.database import get_document, get_document_by_hash, save_document
 from db.vector_store import index_document
 from models.schemas import DocumentResponse, DocumentUploadRequest
 from parsers.jd_parser import parse_job_description
@@ -14,6 +15,11 @@ from parsers.resume_parser import extract_text_from_pdf, parse_resume
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _content_hash(text: str) -> str:
+    """Generate a SHA-256 hash of document content for caching."""
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
 @router.post("/upload", response_model=DocumentResponse)
@@ -27,6 +33,18 @@ async def upload_document(request: DocumentUploadRequest):
     if doc_type not in ("resume", "job_description"):
         raise HTTPException(status_code=400, detail="doc_type must be 'resume' or 'job_description'.")
 
+    # Fix 2.25: Check cache by content hash — skip re-parsing identical documents
+    content_hash = _content_hash(text)
+    cached = await get_document_by_hash(content_hash)
+    if cached and cached.get("type") == doc_type:
+        logger.info("Document cache hit for %s (hash=%s)", doc_type, content_hash[:12])
+        return DocumentResponse(
+            id=cached["id"],
+            doc_type=cached["type"],
+            parsed_data=cached["parsed_data"],
+            created_at=str(cached["created_at"]),
+        )
+
     # Parse the document
     logger.info("Parsing %s document (%d chars)...", doc_type, len(text))
     if doc_type == "resume":
@@ -34,8 +52,8 @@ async def upload_document(request: DocumentUploadRequest):
     else:
         parsed = await parse_job_description(text)
 
-    # Save to database
-    doc_id = await save_document(doc_type, text, parsed)
+    # Save to database with content hash
+    doc_id = await save_document(doc_type, text, parsed, content_hash=content_hash)
 
     # Index in vector store for RAG
     try:
@@ -72,13 +90,25 @@ async def upload_pdf(
     if not text:
         raise HTTPException(status_code=422, detail="Could not extract text from PDF.")
 
+    # Fix 2.25: Check cache by content hash
+    content_hash = _content_hash(text)
+    cached = await get_document_by_hash(content_hash)
+    if cached and cached.get("type") == doc_type:
+        logger.info("PDF document cache hit (hash=%s)", content_hash[:12])
+        return DocumentResponse(
+            id=cached["id"],
+            doc_type=cached["type"],
+            parsed_data=cached["parsed_data"],
+            created_at=str(cached["created_at"]),
+        )
+
     # Parse the document
     if doc_type == "resume":
         parsed = await parse_resume(text)
     else:
         parsed = await parse_job_description(text)
 
-    doc_id = await save_document(doc_type, text, parsed)
+    doc_id = await save_document(doc_type, text, parsed, content_hash=content_hash)
 
     try:
         await index_document(doc_id, text, doc_type)

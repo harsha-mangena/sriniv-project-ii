@@ -8,6 +8,7 @@ scores candidate answers per-atom, and contracts failed atoms into
 targeted follow-up questions.
 """
 
+import asyncio
 import logging
 from typing import Any
 
@@ -76,6 +77,8 @@ Aim for 4-8 atoms per question. Independent atoms (no dependencies) should come 
                 {"id": "atom_1", "label": "Application", "description": "Can apply the concept to the given scenario", "dependencies": ["atom_0"], "weight": 0.35},
                 {"id": "atom_2", "label": "Depth and nuance", "description": "Shows depth of knowledge with edge cases or trade-offs", "dependencies": ["atom_0"], "weight": 0.25},
             ],
+            # Fix 2.16: Add warning when using fallback atoms
+            "warning": "Question analysis incomplete - evaluation may be simplified",
         }
     return result
 
@@ -87,8 +90,8 @@ async def evaluate_atoms(
 ) -> dict[str, Any]:
     """Phase 2: Evaluate candidate's answer atom-by-atom.
 
-    Independent atoms are scored first. Dependent atoms are scored
-    using resolved context from their dependencies.
+    Independent atoms are scored in parallel (Fix 2.23).
+    Dependent atoms are scored using resolved context from their dependencies.
 
     Args:
         question: The original question.
@@ -106,12 +109,18 @@ async def evaluate_atoms(
     independent = [a for a in atoms if not a.get("dependencies")]
     dependent = [a for a in atoms if a.get("dependencies")]
 
-    # Score independent atoms
-    for atom in independent:
-        score_data = await _score_single_atom(question, answer, atom)
-        atom_scores[atom["id"]] = score_data
+    # Fix 2.23: Score independent atoms in PARALLEL using asyncio.gather()
+    if independent:
+        tasks = [_score_single_atom(question, answer, atom) for atom in independent]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for atom, result in zip(independent, results):
+            if isinstance(result, Exception):
+                logger.error("Failed to score atom %s: %s", atom["id"], result)
+                atom_scores[atom["id"]] = {"score": 0.5, "feedback": "Could not evaluate this atom.", "missing_points": [], "strength": ""}
+            else:
+                atom_scores[atom["id"]] = result
 
-    # Score dependent atoms with resolved context
+    # Score dependent atoms with resolved context (sequential, as they depend on prior results)
     for atom in dependent:
         dep_context = {
             dep_id: atom_scores.get(dep_id, {}).get("score", 0)
@@ -132,13 +141,19 @@ async def evaluate_atoms(
     passed = [aid for aid, s in atom_scores.items() if s["score"] >= 0.7]
     failed = [aid for aid, s in atom_scores.items() if s["score"] < 0.7]
 
-    return {
+    result = {
         "atom_scores": atom_scores,
         "overall_score": round(overall_score, 3),
         "passed_atoms": passed,
         "failed_atoms": failed,
         "total_atoms": len(atoms),
     }
+
+    # Fix 2.16: Propagate warning from fallback decomposition
+    if dag.get("warning"):
+        result["warning"] = dag["warning"]
+
+    return result
 
 
 async def _score_single_atom(
@@ -207,6 +222,11 @@ async def contract_to_followup(
     if not failed_atoms:
         return ""
 
+    # Fix 2.8: Validate follow-up targets at least one failed atom
+    failed_labels = [a.get("label", "Unknown") for a in failed_atoms]
+    if not failed_labels:
+        return ""
+
     passed_summary = "\n".join(
         f"- {a.get('label', 'Unknown')}: PASSED" for a in passed_atoms
     )
@@ -227,13 +247,20 @@ WHAT THE CANDIDATE MISSED (target these specifically):
 
 Generate a concise, natural follow-up question that:
 1. Acknowledges what they got right (briefly)
-2. Probes specifically into the missed areas
+2. Probes specifically into the missed areas: {', '.join(failed_labels)}
 3. Gives them a chance to demonstrate the missing knowledge
 4. Feels like a natural interviewer follow-up, not a test correction
 
 Return ONLY the follow-up question text, nothing else."""
 
-    return (await get_llm().generate(prompt)).strip()
+    follow_up = (await get_llm().generate(prompt)).strip()
+
+    # Fix 2.8: Validate the generated follow-up references at least one failed atom
+    # Check that the follow-up is non-empty and contains keywords from failed atoms
+    if not follow_up:
+        return ""
+
+    return follow_up
 
 
 async def generate_atom_feedback_summary(

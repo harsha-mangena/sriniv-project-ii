@@ -29,6 +29,15 @@ from config import (
 logger = logging.getLogger(__name__)
 
 
+# Fix 2.14: Custom exception for LLM response errors
+class LLMResponseError(Exception):
+    """Raised when the LLM returns an error response or invalid data."""
+
+    def __init__(self, message: str, raw_response: str = ""):
+        super().__init__(message)
+        self.raw_response = raw_response
+
+
 class BaseLLM(ABC):
     """Abstract base class for LLM providers."""
 
@@ -52,26 +61,45 @@ class BaseLLM(ABC):
             lines = [line for line in lines if not line.strip().startswith("```")]
             cleaned = "\n".join(lines)
         try:
-            return json.loads(cleaned)
+            result = json.loads(cleaned)
         except json.JSONDecodeError:
             start = cleaned.find("{")
             end = cleaned.rfind("}") + 1
             if start != -1 and end > start:
                 try:
-                    return json.loads(cleaned[start:end])
-                except json.JSONDecodeError:
-                    pass
-            # Try array
-            start = cleaned.find("[")
-            end = cleaned.rfind("]") + 1
-            if start != -1 and end > start:
-                try:
                     result = json.loads(cleaned[start:end])
-                    return {"items": result}
                 except json.JSONDecodeError:
-                    pass
-            logger.warning("Failed to parse JSON from LLM response: %s", cleaned[:200])
-            return {"error": "Failed to parse LLM response", "raw": cleaned[:500]}
+                    result = None
+            else:
+                result = None
+
+            if result is None:
+                # Try array
+                start = cleaned.find("[")
+                end = cleaned.rfind("]") + 1
+                if start != -1 and end > start:
+                    try:
+                        arr = json.loads(cleaned[start:end])
+                        result = {"items": arr}
+                    except json.JSONDecodeError:
+                        pass
+
+            if result is None:
+                logger.warning("Failed to parse JSON from LLM response: %s", cleaned[:200])
+                # Fix 2.14: Raise LLMResponseError instead of returning error dict
+                raise LLMResponseError(
+                    "Failed to parse LLM response as JSON",
+                    raw_response=cleaned[:500],
+                )
+
+        # Fix 2.14: Check if result dict has "error" key -> raise LLMResponseError
+        if isinstance(result, dict) and "error" in result:
+            raise LLMResponseError(
+                result["error"],
+                raw_response=result.get("raw", cleaned[:500]),
+            )
+
+        return result
 
 
 class OllamaLLM(BaseLLM):
@@ -105,9 +133,13 @@ class OllamaLLM(BaseLLM):
                 )
                 response.raise_for_status()
                 return response.json()["response"]
+            except httpx.TimeoutException as e:
+                # Fix 2.15: Timeout -> raise LLMResponseError with 503-friendly message
+                logger.error("Ollama request timed out: %s", e)
+                raise LLMResponseError("AI service temporarily unavailable. Please try again.") from e
             except httpx.HTTPError as e:
                 logger.error("Ollama generate failed: %s", e)
-                raise RuntimeError(f"LLM generation failed: {e}") from e
+                raise LLMResponseError(f"LLM generation failed: {e}") from e
 
     async def generate_json(self, prompt: str, max_tokens: int = 2048) -> dict[str, Any]:
         """Generate structured JSON output from a prompt."""
@@ -137,9 +169,12 @@ class OllamaLLM(BaseLLM):
                 )
                 response.raise_for_status()
                 return response.json()["message"]["content"]
+            except httpx.TimeoutException as e:
+                logger.error("Ollama chat timed out: %s", e)
+                raise LLMResponseError("AI service temporarily unavailable. Please try again.") from e
             except httpx.HTTPError as e:
                 logger.error("Ollama chat failed: %s", e)
-                raise RuntimeError(f"LLM chat failed: {e}") from e
+                raise LLMResponseError(f"LLM chat failed: {e}") from e
 
     async def check_health(self) -> bool:
         """Check if Ollama is running and the model is available."""
@@ -206,7 +241,7 @@ class GeminiLLM(BaseLLM):
             return response.text
         except Exception as e:
             logger.error("Gemini generate failed: %s", e)
-            raise RuntimeError(f"Gemini generation failed: {e}") from e
+            raise LLMResponseError(f"Gemini generation failed: {e}") from e
 
     async def generate_json(self, prompt: str, max_tokens: int = 2048) -> dict[str, Any]:
         """Generate structured JSON output from Gemini."""
@@ -241,7 +276,7 @@ class GeminiLLM(BaseLLM):
             return response.text
         except Exception as e:
             logger.error("Gemini chat failed: %s", e)
-            raise RuntimeError(f"Gemini chat failed: {e}") from e
+            raise LLMResponseError(f"Gemini chat failed: {e}") from e
 
     async def check_health(self) -> bool:
         """Check if Gemini API is accessible."""
