@@ -79,7 +79,7 @@ class PrepQuestionItem(BaseModel):
     question: str
     category: str
     difficulty: int
-    model_answer: str
+    sample_answer: str
     talking_points: list[str]
     target_skills: list[str]
 

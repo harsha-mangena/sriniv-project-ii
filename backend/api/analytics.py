@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter
 
 from analysis.profile_builder import build_learning_profile
-from db.database import get_session_history, get_skill_atom_scores
+from db.database import get_session_history, get_skill_atom_scores, get_skill_atom_scores_normalized
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -15,7 +15,8 @@ router = APIRouter()
 async def get_profile(user_id: str = "default"):
     """Get user learning profile."""
     sessions = await get_session_history(user_id)
-    profile = build_learning_profile(sessions)
+    atom_scores = await get_skill_atom_scores_normalized(user_id)
+    profile = build_learning_profile(sessions, atom_scores=atom_scores)
     return profile
 
 
