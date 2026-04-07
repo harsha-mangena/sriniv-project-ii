@@ -43,19 +43,13 @@ echo "Setting up Python backend..."
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 
 # Install Node.js dependencies
 echo "Setting up frontend..."
 cd ../frontend
 npm install
-
-# Install Rust (for Tauri) if not present
-if ! command -v cargo &> /dev/null; then
-    echo "Installing Rust..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source "$HOME/.cargo/env"
-fi
 
 echo ""
 echo "================================================"

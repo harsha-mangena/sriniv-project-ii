@@ -6,11 +6,19 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def build_learning_profile(session_history: list[dict[str, Any]]) -> dict[str, Any]:
+def build_learning_profile(
+    session_history: list[dict[str, Any]],
+    atom_scores: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Build a comprehensive learning profile from session history.
 
     Args:
-        session_history: List of session results with atom scores.
+        session_history: List of flat session rows from get_session_history().
+            Each row has: id, user_id, resume_id, jd_id, mode, status,
+            overall_score, started_at, ended_at, question_count.
+        atom_scores: Optional list of aggregated atom score rows from
+            get_skill_atom_scores_normalized(). Each row has: atom_id,
+            atom_name, category, avg_score, attempts, times_passed.
 
     Returns:
         Learning profile with strengths, weaknesses, trends.
@@ -28,27 +36,26 @@ def build_learning_profile(session_history: list[dict[str, Any]]) -> dict[str, A
         }
 
     total_sessions = len(session_history)
-    total_questions = sum(s.get("question_count", s.get("questions_count", 0)) for s in session_history)
-    scores = [s.get("overall_score", 0) for s in session_history]
+    total_questions = sum(
+        s.get("question_count", s.get("questions_count", 0)) or 0
+        for s in session_history
+    )
+    scores = [s.get("overall_score", 0) or 0 for s in session_history]
     avg_score = sum(scores) / max(len(scores), 1)
 
-    # Category-level scores
+    # Build category scores from normalized atom_scores if available
     category_scores: dict[str, list[float]] = {}
-    atom_scores: dict[str, list[float]] = {}
 
-    for session in session_history:
-        for q in session.get("questions", []):
-            cat = q.get("category", "General")
-            score = q.get("overall_score", 0)
+    if atom_scores:
+        for row in atom_scores:
+            cat = row.get("category", "General")
+            score = row.get("avg_score", 0) or 0
             category_scores.setdefault(cat, []).append(score)
-            for atom_id, atom_data in q.get("atom_scores", {}).items():
-                atom_scores.setdefault(atom_id, []).append(
-                    atom_data.get("score", 0) if isinstance(atom_data, dict) else atom_data
-                )
 
     cat_averages = {
-        cat: round(sum(scores) / len(scores), 3)
-        for cat, scores in category_scores.items()
+        cat: round(sum(vals) / len(vals), 3)
+        for cat, vals in category_scores.items()
+        if vals
     }
 
     # Identify strengths and weaknesses

@@ -80,7 +80,73 @@ Aim for 4-8 atoms per question. Independent atoms (no dependencies) should come 
             # Fix 2.16: Add warning when using fallback atoms
             "warning": "Question analysis incomplete - evaluation may be simplified",
         }
+
+    # Validate DAG has no cycles; break them if found
+    result["atoms"] = _validate_and_fix_dag(result.get("atoms", []))
+
     return result
+
+
+def _validate_and_fix_dag(atoms: list[dict]) -> list[dict]:
+    """Validate the atom dependency graph is a DAG. Remove back-edges if cycles found."""
+    atom_ids = {a["id"] for a in atoms}
+
+    # First, strip any dependency references to non-existent atom IDs
+    for atom in atoms:
+        atom["dependencies"] = [d for d in atom.get("dependencies", []) if d in atom_ids]
+
+    # Detect cycles using Kahn's algorithm (topological sort)
+    in_degree: dict[str, int] = {a["id"]: 0 for a in atoms}
+    adjacency: dict[str, list[str]] = {a["id"]: [] for a in atoms}
+    for atom in atoms:
+        for dep in atom.get("dependencies", []):
+            adjacency[dep].append(atom["id"])
+            in_degree[atom["id"]] += 1
+
+    queue = [aid for aid, deg in in_degree.items() if deg == 0]
+    sorted_order = []
+    while queue:
+        node = queue.pop(0)
+        sorted_order.append(node)
+        for neighbor in adjacency[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    if len(sorted_order) == len(atoms):
+        return atoms  # No cycles
+
+    # Cycles detected — remove back-edges
+    logger.warning("DAG cycle detected in atom dependencies, removing back-edges")
+    visited: set[str] = set()
+    in_stack: set[str] = set()
+    edges_to_remove: list[tuple[str, str]] = []
+
+    adj_map: dict[str, list[str]] = {a["id"]: list(a.get("dependencies", [])) for a in atoms}
+
+    def dfs(node: str) -> None:
+        visited.add(node)
+        in_stack.add(node)
+        for dep in adj_map.get(node, []):
+            if dep in in_stack:
+                edges_to_remove.append((node, dep))
+            elif dep not in visited:
+                dfs(dep)
+        in_stack.discard(node)
+
+    for atom in atoms:
+        if atom["id"] not in visited:
+            dfs(atom["id"])
+
+    # Remove the identified back-edges
+    remove_set = set(edges_to_remove)
+    for atom in atoms:
+        atom["dependencies"] = [
+            d for d in atom.get("dependencies", [])
+            if (atom["id"], d) not in remove_set
+        ]
+
+    return atoms
 
 
 async def evaluate_atoms(

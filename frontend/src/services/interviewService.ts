@@ -38,7 +38,7 @@ export interface PrepResponse {
     question: string
     category: string
     difficulty: number
-    model_answer: string
+    sample_answer: string
     talking_points: string[]
     target_skills: string[]
   }[]

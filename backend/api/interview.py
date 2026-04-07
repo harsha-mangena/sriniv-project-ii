@@ -38,6 +38,8 @@ router = APIRouter()
 active_engines: dict[str, HybridInterviewEngine] = {}
 session_metadata: dict[str, dict] = {}
 question_counters: dict[str, int] = {}
+# Maps session_id -> current DB question ID (from save_question), fixing FK linkage
+current_db_question_ids: dict[str, str] = {}
 
 
 async def _persist_session_state(session_id: str, engine: HybridInterviewEngine) -> None:
@@ -144,6 +146,8 @@ async def start_interview(request: InterviewStartRequest):
             evaluation_atoms={},
             sequence=question_counters[session_id],
         )
+        # Track the DB question ID so answers reference the correct FK
+        current_db_question_ids[session_id] = q_id
         first_question_data = {
             "question_id": q_id,
             **first_q,
@@ -183,7 +187,8 @@ async def submit_answer(request: AnswerSubmitRequest):
 
     # Get current question info for saving
     current_q = engine.current_question
-    q_id = current_q.get("node_id", "") if current_q else ""
+    # Use the DB question ID (from save_question) instead of the ToT node_id
+    q_id = current_db_question_ids.get(request.session_id, "")
 
     # Fix 2.6: If this is a follow-up, ensure the follow-up question is saved
     # as a proper question record before saving the answer
@@ -199,6 +204,8 @@ async def submit_answer(request: AnswerSubmitRequest):
             sequence=question_counters.get(request.session_id, 0) + 1,
         )
         question_counters[request.session_id] = question_counters.get(request.session_id, 0) + 1
+        # Update the DB question ID for the next answer submission
+        current_db_question_ids[request.session_id] = follow_up_q_id
 
     # Fix 2.5: Validate question_id before saving answer
     if q_id:
@@ -277,6 +284,8 @@ async def get_next_question(session_id: str):
         evaluation_atoms={},
         sequence=question_counters[session_id],
     )
+    # Track the DB question ID for answer FK linkage
+    current_db_question_ids[session_id] = q_id
 
     # Fix 2.11: Persist state after getting next question
     await _persist_session_state(session_id, engine)
@@ -351,6 +360,7 @@ async def end_interview(session_id: str):
     active_engines.pop(session_id, None)
     session_metadata.pop(session_id, None)
     question_counters.pop(session_id, None)
+    current_db_question_ids.pop(session_id, None)
 
     # Clean up persisted state
     await delete_session_state(session_id)

@@ -98,8 +98,8 @@ export default function PrepMode() {
                 {expandedId === i && (
                   <div className="mt-4 pt-4 border-t border-navy-700 space-y-3">
                     <div>
-                      <p className="text-xs font-medium text-accent mb-1">Model Answer</p>
-                      <p className="text-sm text-gray-300 whitespace-pre-wrap">{q.model_answer}</p>
+                      <p className="text-xs font-medium text-accent mb-1">Sample Answer</p>
+                      <p className="text-sm text-gray-300 whitespace-pre-wrap">{q.sample_answer}</p>
                     </div>
                     <div>
                       <p className="text-xs font-medium text-emerald-400 mb-1">Talking Points</p>

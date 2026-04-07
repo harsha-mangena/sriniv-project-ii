@@ -75,7 +75,7 @@ Return JSON:
             question=q.get("question", ""),
             category=q.get("category", "General"),
             difficulty=q.get("difficulty", 3),
-            model_answer=q.get("model_answer", ""),
+            sample_answer=q.get("model_answer", ""),
             talking_points=q.get("talking_points", []),
             target_skills=q.get("target_skills", []),
         ))
@@ -94,7 +94,7 @@ Return JSON:
   "preparation_tips": ["...", "..."]
 }}"""
 
-    weakness = await llm.generate_json(weakness_prompt)
+    weakness = await get_llm().generate_json(weakness_prompt)
 
     from analysis.match_scoring import calculate_match_score
     match = calculate_match_score(
