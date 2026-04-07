@@ -47,6 +47,9 @@ The result: every question is personalized, every answer is evaluated at granula
 | Layer | Technology | License |
 |-------|-----------|---------|
 | Desktop Shell | Tauri 2 (Rust) | MIT |
+| Overlay | NSPanel (tauri-nspanel) | MIT |
+| Audio Capture | ScreenCaptureKit + cpal | MIT |
+| Transcription | whisper.cpp (whisper-rs) | MIT |
 | Frontend | React + TypeScript + Tailwind | MIT |
 | AI Backend | Python FastAPI | MIT |
 | LLM Runtime | Ollama (Metal GPU) | MIT |
@@ -54,7 +57,6 @@ The result: every question is personalized, every answer is evaluated at granula
 | Embeddings | nomic-embed-text | Apache-2.0 |
 | Vector DB | ChromaDB | Apache-2.0 |
 | Database | SQLite | Public Domain |
-| STT | faster-whisper | MIT |
 
 **Total recurring cost: $0**
 
@@ -73,7 +75,7 @@ The result: every question is personalized, every answer is evaluated at granula
 git clone https://github.com/harsha-mangena/sriniv-project-ii.git
 cd sriniv-project-ii
 
-# Run one-command setup (installs Ollama, models, dependencies)
+# Run one-command setup (installs Rust, Ollama, models, dependencies)
 chmod +x scripts/setup.sh
 ./scripts/setup.sh
 
@@ -81,11 +83,70 @@ chmod +x scripts/setup.sh
 ./scripts/dev.sh
 ```
 
-Then open http://localhost:5173 in your browser.
+### Web Mode
+Open http://localhost:5173 in your browser.
 
-## Manual Setup
+### Desktop App Mode (Tauri)
+```bash
+# Start the native Mac app with overlay, audio capture, and shortcuts
+cd src-tauri && cargo tauri dev
+```
 
-### 1. Install Ollama
+## Desktop App Features (Tauri 2)
+
+The native Mac app adds powerful features not possible in a browser:
+
+- **Invisible Overlay** — Floating panel above fullscreen apps, invisible to screen sharing
+- **System Audio Capture** — Records meeting audio via ScreenCaptureKit (no BlackHole needed)
+- **Microphone Capture** — Records your voice separately for speaker labeling
+- **Local Transcription** — whisper.cpp runs on-device (~300ms on Apple Silicon)
+- **Global Shortcuts** — Control everything without switching windows
+- **Screen Capture + OCR** — Captures on-screen context for smarter suggestions
+- **System Tray** — Start/stop sessions, show/hide overlay from the menu bar
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| Cmd+\ | Toggle overlay visibility |
+| Cmd+Shift+Space | Start/stop recording |
+| Cmd+H | Take screenshot + OCR |
+| Cmd+Enter | Open AI chat in overlay |
+| Cmd+Arrow Keys | Move overlay window |
+| Cmd+R | Clear context / reset |
+
+## Installation
+
+### Prerequisites
+
+- macOS 12.3+ (Monterey or later)
+- Apple Silicon (M1/M2/M3/M4) or Intel Mac
+- 16GB RAM recommended (8GB minimum with smaller model)
+- Rust 1.77+ and Xcode Command Line Tools (for desktop app)
+- Python 3.11+
+- Node.js 18+
+- ~10GB disk space for models
+
+### Desktop App (.dmg)
+```bash
+# Build the production .dmg
+cd src-tauri && cargo tauri build --bundles dmg
+# Output: target/release/bundle/dmg/InterviewPilot.dmg
+```
+
+### Manual Setup
+
+#### 1. Install Prerequisites
+```bash
+# Install Rust (required for Tauri)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# Install Xcode Command Line Tools
+xcode-select --install
+```
+
+#### 2. Install Ollama
 ```bash
 brew install ollama
 ollama serve &
@@ -93,7 +154,7 @@ ollama pull qwen3:8b
 ollama pull nomic-embed-text
 ```
 
-### 2. Setup Backend
+#### 3. Setup Backend
 ```bash
 cd backend
 python3 -m venv .venv
@@ -102,21 +163,32 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-### 3. Setup Frontend
+#### 4. Setup Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
+#### 5. Run Desktop App (Optional)
+```bash
+cd src-tauri
+cargo tauri dev
+```
+
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────┐
-│          React Frontend (Tauri Shell)            │
+│           Tauri 2 Native Shell (Rust)            │
+│  NSPanel Overlay │ Audio Capture │ Global Keys   │
+│  ScreenCaptureKit │ Whisper.cpp │ System Tray    │
+├─────────────────────────────────────────────────┤
+│          React Frontend (TypeScript)             │
 │  Dashboard │ Mock Interview │ Prep │ Analytics   │
+│  Overlay UI │ Transcript │ Suggestions │ Chat    │
 └─────────────────────┬───────────────────────────┘
-                      │ REST API / WebSocket
+                      │ REST API / WebSocket / IPC
 ┌─────────────────────▼───────────────────────────┐
 │             Python FastAPI Backend               │
 │                                                   │
@@ -127,6 +199,7 @@ npm run dev
 │  └─────────────────────────────────────────────┘ │
 │                                                   │
 │  RAG Pipeline │ Parsers │ Analytics │ Sessions    │
+│  Real-Time Suggest │ OCR │ Transcript Pipeline    │
 └─────────────────────┬───────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────┐
@@ -145,7 +218,10 @@ Key endpoints:
 - `POST /api/interview/answer` — Submit and evaluate answer
 - `POST /api/questions/generate-prep` — Generate prep questions
 - `GET /api/analytics/profile` — Get learning profile
-- `WS /api/realtime/stream` — Real-time meeting assistant
+- `WS /api/realtime/stream` — Real-time meeting assistant (WebSocket)
+- `POST /api/realtime/suggest` — Get AI suggestion (desktop overlay)
+- `POST /api/realtime/ocr` — Extract text from screenshot
+- `POST /api/realtime/transcript` — Post transcript segment (REST fallback)
 
 ## Research References
 

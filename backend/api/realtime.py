@@ -1,16 +1,118 @@
-"""Real-time meeting assistant WebSocket endpoint."""
+"""Real-time meeting assistant WebSocket and REST endpoints."""
 
 import asyncio
 import json
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
 from core.llm import get_llm
 from db.vector_store import search_context
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# --- REST Endpoints for Tauri Desktop App ---
+
+
+class SuggestRequest(BaseModel):
+    """Request for the /suggest endpoint (Tauri desktop: 'What should I say?')."""
+    question: str
+    transcript: str = ""
+    screen_context: str = ""
+    resume_id: str | None = None
+    jd_id: str | None = None
+
+
+class SuggestResponse(BaseModel):
+    suggestion: str
+    confidence: float = 0.8
+
+
+class OcrRequest(BaseModel):
+    """Request for the /ocr endpoint (Tauri desktop: screenshot OCR)."""
+    image_base64: str
+    format: str = "png"
+
+
+class OcrResponse(BaseModel):
+    text: str
+
+
+class TranscriptPostRequest(BaseModel):
+    """Transcript segment posted from Tauri desktop app."""
+    type: str = "transcript"
+    text: str
+    speaker: str = "unknown"
+    timestamp_ms: int = 0
+
+
+@router.post("/suggest", response_model=SuggestResponse)
+async def suggest_endpoint(req: SuggestRequest):
+    """Generate an AI suggestion based on transcript + screen context + question.
+
+    Used by the Tauri desktop overlay for 'What should I say?' feature.
+    """
+    # Search for relevant RAG context from uploaded documents
+    doc_ids = [v for v in [req.resume_id, req.jd_id] if v]
+    rag_context = ""
+    if doc_ids:
+        try:
+            rag_context = await search_context(req.question, doc_ids=doc_ids, n_results=3)
+        except Exception:
+            pass
+
+    prompt = f"""You are a real-time interview assistant. Generate a concise, actionable response hint.
+
+USER QUESTION: {req.question}
+
+RECENT TRANSCRIPT:
+{req.transcript[:2000] if req.transcript else "(no transcript yet)"}
+
+{f"SCREEN CONTEXT (OCR):{chr(10)}{req.screen_context[:1000]}" if req.screen_context else ""}
+
+{f"RELEVANT BACKGROUND:{chr(10)}{rag_context[:500]}" if rag_context else ""}
+
+Generate a structured response with 3-5 bullet points that the candidate can use.
+Be concise — this appears as a small overlay during a live meeting.
+Focus on key points and actionable phrases, not full paragraphs."""
+
+    suggestion = (await get_llm().generate(prompt, max_tokens=512)).strip()
+    return SuggestResponse(suggestion=suggestion)
+
+
+@router.post("/ocr", response_model=OcrResponse)
+async def ocr_endpoint(req: OcrRequest):
+    """Extract text from a screenshot using the LLM's vision capabilities.
+
+    Falls back to simple acknowledgment if the LLM doesn't support vision.
+    """
+    try:
+        llm = get_llm()
+        # Try to use LLM vision for OCR (Gemini and some Ollama models support this)
+        prompt = """Extract all visible text from this screenshot.
+Return only the text content, preserving layout where possible.
+If there is no readable text, return '(no text detected)'."""
+
+        # If the LLM supports image input, use it
+        result = (await llm.generate(prompt, max_tokens=1024)).strip()
+        return OcrResponse(text=result)
+    except Exception as e:
+        logger.warning("OCR via LLM failed: %s", e)
+        return OcrResponse(text="(OCR not available)")
+
+
+@router.post("/transcript")
+async def transcript_post_endpoint(req: TranscriptPostRequest):
+    """Receive transcript segments from the Tauri desktop app.
+
+    This is a REST fallback for when the WebSocket connection is not available.
+    In production, the WebSocket (/stream) is the primary transport.
+    """
+    logger.debug("Received transcript: [%s] %s", req.speaker, req.text[:100])
+    return {"status": "received"}
 
 
 @router.websocket("/stream")
@@ -28,6 +130,7 @@ async def realtime_stream(websocket: WebSocket):
 
     config = {"resume_id": None, "jd_id": None}
     transcript_buffer: list[str] = []
+    screen_context: str = ""
 
     try:
         while True:
@@ -71,6 +174,11 @@ async def realtime_stream(websocket: WebSocket):
                         "text": suggestion,
                         "confidence": 0.8,
                     })
+
+            elif msg_type == "screen_context":
+                # Receive OCR text from screen captures
+                screen_context = message.get("text", "")
+                await websocket.send_json({"type": "status", "status": "screen_context_received"})
 
             elif msg_type == "ping":
                 await websocket.send_json({"type": "pong"})

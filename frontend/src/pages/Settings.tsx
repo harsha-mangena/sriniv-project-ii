@@ -153,6 +153,64 @@ export default function Settings() {
         </div>
       </div>
 
+      {/* Overlay Settings (Desktop App) */}
+      <div className="card space-y-4">
+        <h3 className="text-sm font-medium text-gray-400 mb-1">Overlay Settings</h3>
+        <p className="text-xs text-gray-600 mb-3">These settings apply to the floating overlay in the desktop app.</p>
+
+        <div>
+          <label className="text-sm font-medium text-gray-300 block mb-2">
+            Overlay Opacity: {Math.round(settings.overlayOpacity * 100)}%
+          </label>
+          <input
+            type="range"
+            min="0.3"
+            max="1"
+            step="0.05"
+            value={settings.overlayOpacity}
+            onChange={(e) => settings.setOverlayOpacity(parseFloat(e.target.value))}
+            className="w-full accent-accent"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-300 block mb-2">Default Position</label>
+          <div className="grid grid-cols-2 gap-2">
+            {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map((pos) => (
+              <button
+                key={pos}
+                className={`px-3 py-2 rounded-lg text-xs ${settings.overlayPosition === pos ? 'bg-accent text-white' : 'bg-navy-700 text-gray-400'}`}
+                onClick={() => settings.setOverlayPosition(pos)}
+              >
+                {pos.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-300">Auto Screenshot</label>
+          <button
+            className={`px-4 py-1.5 rounded-lg text-xs ${settings.autoScreenshot ? 'bg-accent text-white' : 'bg-navy-700 text-gray-400'}`}
+            onClick={() => settings.setAutoScreenshot(!settings.autoScreenshot)}
+          >
+            {settings.autoScreenshot ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-300 block mb-2">Keyboard Shortcuts</label>
+          <div className="text-xs text-gray-500 space-y-1">
+            <p><kbd className="px-1.5 py-0.5 bg-navy-700 rounded text-gray-300">Cmd+\</kbd> Toggle overlay</p>
+            <p><kbd className="px-1.5 py-0.5 bg-navy-700 rounded text-gray-300">Cmd+Shift+Space</kbd> Toggle recording</p>
+            <p><kbd className="px-1.5 py-0.5 bg-navy-700 rounded text-gray-300">Cmd+H</kbd> Take screenshot</p>
+            <p><kbd className="px-1.5 py-0.5 bg-navy-700 rounded text-gray-300">Cmd+Enter</kbd> Open AI chat</p>
+            <p><kbd className="px-1.5 py-0.5 bg-navy-700 rounded text-gray-300">Cmd+Arrow</kbd> Move overlay</p>
+            <p><kbd className="px-1.5 py-0.5 bg-navy-700 rounded text-gray-300">Cmd+R</kbd> Clear context</p>
+          </div>
+        </div>
+      </div>
+
       {/* About */}
       <div className="card">
         <h3 className="text-sm font-medium text-gray-400 mb-3">About InterviewPilot</h3>
