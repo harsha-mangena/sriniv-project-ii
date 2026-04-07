@@ -22,6 +22,21 @@ if ! command -v brew &> /dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
+# Install Rust if needed (required for Tauri)
+if ! command -v rustc &> /dev/null; then
+    echo "Installing Rust..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source "$HOME/.cargo/env"
+fi
+
+# Ensure Xcode Command Line Tools are installed
+if ! xcode-select -p &> /dev/null; then
+    echo "Installing Xcode Command Line Tools..."
+    xcode-select --install
+    echo "Please complete the Xcode CLI Tools installation and re-run this script."
+    exit 1
+fi
+
 # Install Ollama
 if ! command -v ollama &> /dev/null; then
     echo "Installing Ollama..."
@@ -54,5 +69,7 @@ npm install
 echo ""
 echo "================================================"
 echo "  Setup complete!"
-echo "  Run: ./scripts/dev.sh"
+echo ""
+echo "  Web mode:    ./scripts/dev.sh"
+echo "  Desktop app: cd src-tauri && cargo tauri dev"
 echo "================================================"
